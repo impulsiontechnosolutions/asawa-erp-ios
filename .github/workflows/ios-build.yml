@@ -1,16 +1,4 @@
 # GitHub Actions: builds Asawa ERP iOS in the cloud.
-#
-# WHAT THIS DOES
-# --------------
-# Every push to main (and every PR) spins up a macOS runner, installs
-# XcodeGen, generates the Xcode project from project.yml, then runs
-# xcodebuild to produce an UNSIGNED .app bundle. You can download
-# the bundle from the Actions tab -> run -> Artifacts.
-#
-# UNSIGNED .app cannot be installed on a real iPhone - Apple requires
-# code signing. To produce a sideloadable .ipa you need an Apple
-# Developer account ($99/yr) + a provisioning profile, then you uncomment
-# the signing block at the bottom of this file.
 
 name: iOS Build
 
@@ -49,6 +37,7 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -57,8 +46,21 @@ jobs:
       - name: Zip the .app bundle for Appetize
         id: locate
         run: |
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -type d -name "AsawaERP.app" | head -n 1)
+          # Look for AsawaERP.app under our explicit derived-data path
+          APP_PATH=$(find build -type d -name "AsawaERP.app" | head -n 1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: AsawaERP.app not found in build/"
+            echo "---- Listing all .app bundles found anywhere: ----"
+            find . ~/Library/Developer/Xcode/DerivedData /Users/runner -type d -name "*.app" 2>/dev/null | head -20
+            echo "---- Top-level build/ contents: ----"
+            ls -la build/ 2>/dev/null || true
+            exit 1
+          fi
+
           echo "Found app at: $APP_PATH"
+          ls -la "$APP_PATH"
+
           cd "$(dirname "$APP_PATH")"
           zip -r "$RUNNER_TEMP/AsawaERP-Simulator.zip" "$(basename "$APP_PATH")"
           echo "zip_path=$RUNNER_TEMP/AsawaERP-Simulator.zip" >> "$GITHUB_OUTPUT"
@@ -71,10 +73,7 @@ jobs:
           retention-days: 7
 
   # =====================================================================
-  # Signed build for TestFlight - UNCOMMENT once you have:
-  #   1. Apple Developer Program enrollment ($99/yr)
-  #   2. Distribution certificate + provisioning profile
-  #   3. Repo secrets configured (see generate-ios-signing-from-ubuntu.sh)
+  # Signed build for TestFlight - UNCOMMENT after Apple Developer enrollment.
   # =====================================================================
   #
   # archive:
@@ -88,4 +87,4 @@ jobs:
   #         xcode-version: latest-stable
   #     - run: brew install xcodegen
   #     - run: xcodegen generate
-  #     # ... (full signing + TestFlight upload steps go here)
+  #     # ... (full signing + TestFlight upload steps)
