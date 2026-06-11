@@ -1,5 +1,3 @@
-# GitHub Actions: builds Asawa ERP iOS in the cloud.
-
 name: iOS Build
 
 on:
@@ -46,15 +44,13 @@ jobs:
       - name: Zip the .app bundle for Appetize
         id: locate
         run: |
-          # Look for AsawaERP.app under our explicit derived-data path
-          APP_PATH=$(find build -type d -name "AsawaERP.app" | head -n 1)
+          # Match any .app bundle under build/ — robust against renames
+          APP_PATH=$(find build/Build/Products -type d -name "*.app" | head -n 1)
 
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: AsawaERP.app not found in build/"
-            echo "---- Listing all .app bundles found anywhere: ----"
-            find . ~/Library/Developer/Xcode/DerivedData /Users/runner -type d -name "*.app" 2>/dev/null | head -20
-            echo "---- Top-level build/ contents: ----"
-            ls -la build/ 2>/dev/null || true
+            echo "ERROR: no .app bundle found"
+            find build -type d -name "*.app" 2>/dev/null
+            ls -la build/Build/Products/ 2>/dev/null || true
             exit 1
           fi
 
@@ -62,6 +58,7 @@ jobs:
           ls -la "$APP_PATH"
 
           cd "$(dirname "$APP_PATH")"
+          # Quote handles spaces if any future PRODUCT_NAME has them
           zip -r "$RUNNER_TEMP/AsawaERP-Simulator.zip" "$(basename "$APP_PATH")"
           echo "zip_path=$RUNNER_TEMP/AsawaERP-Simulator.zip" >> "$GITHUB_OUTPUT"
 
@@ -71,20 +68,3 @@ jobs:
           name: AsawaERP-Simulator-app
           path: ${{ steps.locate.outputs.zip_path }}
           retention-days: 7
-
-  # =====================================================================
-  # Signed build for TestFlight - UNCOMMENT after Apple Developer enrollment.
-  # =====================================================================
-  #
-  # archive:
-  #   name: Archive & Upload to TestFlight
-  #   runs-on: macos-15
-  #   if: github.ref == 'refs/heads/main'
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: maxim-lobanov/setup-xcode@v1
-  #       with:
-  #         xcode-version: latest-stable
-  #     - run: brew install xcodegen
-  #     - run: xcodegen generate
-  #     # ... (full signing + TestFlight upload steps)
