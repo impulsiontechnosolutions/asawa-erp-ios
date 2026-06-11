@@ -1,0 +1,52 @@
+# XcodeGen project specification for Asawa ERP iOS
+# Run `xcodegen generate` on a Mac to produce AsawaERP.xcodeproj
+#
+# Install XcodeGen on Mac:  brew install xcodegen
+# Or in CI:                  brew install xcodegen
+#
+# Why XcodeGen? Lets us define the project in YAML (text, diff-friendly,
+# Git-friendly) instead of Xcode's binary-ish project.pbxproj file.
+# This means the project can be edited from any OS, including Ubuntu.
+
+name: AsawaERP
+options:
+  bundleIdPrefix: com.asawa
+  deploymentTarget:
+    iOS: "16.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1"            # iPhone only (1 = iPhone, 2 = iPad)
+    ENABLE_BITCODE: NO
+    # IMPORTANT — replace TEAMID later, when you enroll in Apple Developer Program
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  AsawaERP:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: AsawaERP
+        excludes:
+          - "Info.plist"
+          - "AsawaERP.entitlements"
+    resources:
+      - path: AsawaERP/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.asawa.erp
+        PRODUCT_NAME: "Asawa ERP"
+        INFOPLIST_FILE: AsawaERP/Info.plist
+        CODE_SIGN_ENTITLEMENTS: AsawaERP/AsawaERP.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO

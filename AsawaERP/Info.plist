@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- ───────────── Basic app identity ───────────── -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Asawa ERP</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIRequiresFullScreen</key>
+    <false/>
+
+    <!-- ───────────── Supported orientations ───────────── -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+    <!-- ───────────── Status bar / appearance ───────────── -->
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <true/>
+
+    <!-- ───────────── App Transport Security ─────────────
+         erp.asawainsulation.com is HTTPS so the default ATS policy is fine.
+         No exceptions needed. -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+
+    <!-- ───────────── Permission usage strings (REQUIRED) ─────────────
+         If any of these strings are missing, the app will CRASH the first
+         time iOS asks for the corresponding permission. App Store will also
+         reject the binary. Keep these honest and specific. -->
+
+    <key>NSCameraUsageDescription</key>
+    <string>Asawa ERP uses the camera so you can attach photos and scan documents to ERP records.</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Asawa ERP uses the microphone for voice notes and video recording attached to ERP records.</string>
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Asawa ERP needs access to your photos so you can attach them to ERP records.</string>
+
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Asawa ERP saves downloaded files and images to your photo library when requested.</string>
+
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Asawa ERP logs your work location so your manager can verify field activity. Used only while the app is open unless you enable background tracking.</string>
+
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Asawa ERP logs your work location periodically, even when the app is closed, so your field activity is recorded in the ERP system.</string>
+
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Asawa ERP logs your work location periodically, even when the app is closed, so your field activity is recorded in the ERP system.</string>
+
+    <key>NSFaceIDUsageDescription</key>
+    <string>Asawa ERP can use Face ID to keep your session secure.</string>
+
+    <!-- ───────────── Background modes ─────────────
+         "location" is required for significant location change monitoring
+         to keep firing when the app is in the background.
+         "fetch" allows periodic background fetch as a fallback. -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+
+    <!-- ───────────── URL Scheme: asawa-mobile:// ─────────────
+         Mirrors the Android deep-link scheme. External apps / emails / SMS
+         can launch the app with asawa-mobile://some/path -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.asawa.erp</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>asawa-mobile</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- ───────────── Outbound URL schemes we plan to open ─────────────
+         iOS 9+ requires schemes used with canOpenURL: to be declared here. -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>tel</string>
+        <string>telprompt</string>
+        <string>mailto</string>
+        <string>sms</string>
+        <string>whatsapp</string>
+        <string>maps</string>
+        <string>comgooglemaps</string>
+        <!-- Placeholder for future Asawa Connect (Raven) iOS app — update once Raven iOS exists -->
+        <string>asawa-connect</string>
+    </array>
+
+    <!-- ───────────── Misc iOS niceties ───────────── -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+</dict>
+</plist>

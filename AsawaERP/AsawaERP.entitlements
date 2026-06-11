@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        ════════════════════════════════════════════════════════════════
+        Asawa ERP — Entitlements
+        ════════════════════════════════════════════════════════════════
+
+        Right now: empty. Free Apple ID signing works with no entitlements.
+
+        LATER (after you enroll in Apple Developer Program $99/yr):
+        Uncomment the blocks below to enable:
+          • Universal Links — opens https://erp.asawainsulation.com/app/*
+            inside the app instead of Safari. Requires apple-app-site-association
+            file hosted at https://erp.asawainsulation.com/.well-known/
+          • Push Notifications — APNs.
+
+        ────────────────────────────────────────────────────────────────
+        <key>com.apple.developer.associated-domains</key>
+        <array>
+            <string>applinks:erp.asawainsulation.com</string>
+        </array>
+
+        <key>aps-environment</key>
+        <string>production</string>
+        ────────────────────────────────────────────────────────────────
+    -->
+</dict>
+</plist>
