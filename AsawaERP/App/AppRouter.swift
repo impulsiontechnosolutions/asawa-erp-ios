@@ -35,7 +35,7 @@ final class AppRouter: ObservableObject {
             UIApplication.shared.open(scheme)
             return
         }
-        // Not installed → take the user to the App Store listing (placeholder for now).
+        // Not installed -> take the user to the App Store listing (placeholder for now).
         if let store = Config.ravenAppStoreURL {
             UIApplication.shared.open(store)
         }
@@ -46,16 +46,17 @@ final class AppRouter: ObservableObject {
     func handleIncoming(url: URL) {
         let scheme = url.scheme?.lowercased() ?? ""
 
-        // asawa-mobile://app/something  →  https://erp.asawainsulation.com/app/something
+        // asawa-mobile://app/something  ->  https://erp.asawainsulation.com/app/something
         if scheme == Config.appURLScheme {
-            // Strip the scheme and rebuild against the ERP origin.
-            // Path & query are passed through.
-            var comps = URLComponents()
+            // Re-host the incoming URL onto our ERP origin while preserving
+            // the path/query/fragment exactly (including percent encoding).
+            guard var comps = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                destination = .webView(Config.startURL)
+                return
+            }
             comps.scheme = "https"
             comps.host = Config.siteHost
-            comps.path = url.path.isEmpty ? "/" : url.path
-            comps.percentEncodedQuery = url.percentEncodedQuery
-            comps.fragment = url.fragment
+            if comps.path.isEmpty { comps.path = "/" }
             destination = .webView(comps.url ?? Config.startURL)
             return
         }
@@ -66,7 +67,7 @@ final class AppRouter: ObservableObject {
             return
         }
 
-        // Unknown — just open ERP root.
+        // Unknown -- just open ERP root.
         destination = .webView(Config.startURL)
     }
 }
