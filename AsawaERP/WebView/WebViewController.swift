@@ -210,8 +210,20 @@ extension WebViewController: WKNavigationDelegate {
         }
 
         // 3) External hosts — open in Safari, NOT in our WebView.
+        //    BUT: allow same-host AND any *.asawainsulation.com subdomain.
+        //    ERPNext / Frappe sometimes redirects through subdomains (login,
+        //    media, files, etc.); we want all of those to stay in-app.
         if scheme == "http" || scheme == "https" {
-            if url.host?.lowercased() != Config.siteHost.lowercased() {
+            let host = url.host?.lowercased() ?? ""
+            let siteHost = Config.siteHost.lowercased()
+            let baseDomain = "asawainsulation.com"
+            let allowed = (host == siteHost) ||
+                          host.hasSuffix("." + baseDomain) ||
+                          host == baseDomain
+            if !allowed {
+                #if DEBUG
+                print("[Asawa] external host blocked: \(host) — opening in Safari")
+                #endif
                 ExternalSchemeHandler.openExternally(url)
                 decisionHandler(.cancel)
                 return
@@ -221,6 +233,9 @@ extension WebViewController: WKNavigationDelegate {
         // 4) blob: URLs are intercepted by our injected JS bridge (see BridgeScript).
         //    They never reach navigation policy, so nothing to do here.
 
+        #if DEBUG
+        print("[Asawa] allow nav -> \(url.absoluteString)")
+        #endif
         currentURL = url
         decisionHandler(.allow)
     }
@@ -279,6 +294,9 @@ extension WebViewController: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  didStartProvisionalNavigation navigation: WKNavigation!) {
+        #if DEBUG
+        print("[Asawa] didStartProvisionalNavigation — \(webView.url?.absoluteString ?? "nil")")
+        #endif
         DispatchQueue.main.async {
             self.model?.isLoading = true
             self.model?.progress = 0
@@ -286,12 +304,16 @@ extension WebViewController: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        #if DEBUG
+        print("[Asawa] didFinish — \(webView.url?.absoluteString ?? "nil")")
+        #endif
         DispatchQueue.main.async {
             self.model?.isLoading = false
             self.webView.scrollView.refreshControl?.endRefreshing()
         }
-        // Flush cookies (mirrors Android CookieManager.getInstance().flush())
-        WKWebsiteDataStore.default().httpCookieStore.getAllCookies { _ in /* no-op; touching it forces a flush */ }
+        // Touching the cookie store forces a flush (parity with Android
+        // CookieManager.getInstance().flush()).
+        WKWebsiteDataStore.default().httpCookieStore.getAllCookies { _ in }
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!,
@@ -306,17 +328,66 @@ extension WebViewController: WKNavigationDelegate {
     }
 
     private func handleNavigationError(_ error: Error) {
+        let ns = error as NSError
+        // -999 = "cancelled" — fires whenever WKWebView interrupts an in-flight
+        //        navigation (e.g. user tapped a new link). Not a real error;
+        //        do not show anything.
+        if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled {
+            #if DEBUG
+            print("[Asawa] nav cancelled (ignored)")
+            #endif
+            return
+        }
+
+        #if DEBUG
+        print("[Asawa] navigation error: domain=\(ns.domain) code=\(ns.code) — \(ns.localizedDescription)")
+        #endif
+
         DispatchQueue.main.async {
             self.model?.isLoading = false
             self.webView.scrollView.refreshControl?.endRefreshing()
-
-            let ns = error as NSError
-            // -1009 = no internet, -1004 = can't connect, -1001 = timeout
-            if ns.domain == NSURLErrorDomain &&
-                [-1009, -1004, -1001, -1003, -1005].contains(ns.code) {
-                self.showOfflineErrorPage()
-            }
+            // Always show a visible error page so we never end up staring at a
+            // white screen with no information.
+            self.showNavigationErrorPage(error: ns)
         }
+    }
+
+    /// Visible error page for any navigation failure. Includes Retry button.
+    private func showNavigationErrorPage(error: NSError) {
+        let isOffline = error.domain == NSURLErrorDomain &&
+            [-1009, -1004, -1001, -1003, -1005].contains(error.code)
+
+        let title = isOffline ? "No Internet Connection" : "Couldn't load the page"
+        let icon  = isOffline ? "📡" : "⚠️"
+        let detail = "\(error.localizedDescription)\n\n(\(error.domain) code \(error.code))"
+
+        let escaped = detail
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+
+        let html = """
+        <!DOCTYPE html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>
+        <style>
+          body{font-family:-apple-system,system-ui,sans-serif;display:flex;flex-direction:column;
+               align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb;color:#374151;
+               padding:24px;box-sizing:border-box;}
+          .icon{font-size:64px;margin-bottom:16px;}
+          h2{margin:0 0 8px;font-size:22px;text-align:center;}
+          p{margin:0 0 24px;color:#6b7280;text-align:center;}
+          pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #e5e7eb;
+              border-radius:8px;padding:12px;font-size:12px;color:#6b7280;max-width:600px;width:100%;margin:0 0 24px;}
+          button{background:#2563eb;color:#fff;border:none;padding:12px 28px;border-radius:10px;
+                 font-size:16px;cursor:pointer;}
+        </style></head><body>
+        <div class='icon'>\(icon)</div>
+        <h2>\(title)</h2>
+        <p>Please check your network and try again.</p>
+        <pre>\(escaped)</pre>
+        <button onclick='window.location.href="\(Config.startURL.absoluteString)"'>Retry</button>
+        </body></html>
+        """
+        webView.loadHTMLString(html, baseURL: Config.startURL)
     }
 
     // SSL: we use the system's default trust evaluation. No custom challenge
