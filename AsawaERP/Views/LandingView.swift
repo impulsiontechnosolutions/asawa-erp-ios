@@ -13,6 +13,8 @@ import SwiftUI
 struct LandingView: View {
 
     @EnvironmentObject private var router: AppRouter
+    @State private var versionTapCount: Int = 0
+    @State private var showDiagnostics: Bool = false
 
     var body: some View {
         ZStack {
@@ -53,12 +55,24 @@ struct LandingView: View {
 
                 Spacer()
 
+                // Tap this 7 times to reveal the hidden Diagnostics screen.
+                // Same Easter-egg pattern Apple uses in their own apps.
                 Text("v\(appVersionString)")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .padding(.bottom, 16)
+                    .onTapGesture {
+                        versionTapCount += 1
+                        if versionTapCount >= 7 {
+                            versionTapCount = 0
+                            showDiagnostics = true
+                        }
+                    }
             }
             .padding(.horizontal, 20)
+        }
+        .sheet(isPresented: $showDiagnostics) {
+            DiagnosticView()
         }
     }
 
