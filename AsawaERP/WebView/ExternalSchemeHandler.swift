@@ -20,7 +20,7 @@ enum ExternalSchemeHandler {
         "geo",                 // Android-style map links — iOS resolves to Apple Maps via maps://
         "intent",              // Android-specific; we just hand to the OS, harmless
         "facetime", "facetime-audio",
-        "itms-apps", "itms-services"
+        "itms-apps"
     ]
 
     static func openExternally(_ url: URL) {
