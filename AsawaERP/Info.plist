@@ -76,8 +76,6 @@
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Asawa ERP logs your work location periodically, even when the app is closed, so your field activity is recorded in the ERP system.</string>
 
-    <key>NSFaceIDUsageDescription</key>
-    <string>Asawa ERP can use Face ID to keep your session secure.</string>
 
     <!-- ───────────── Background modes ─────────────
          "location" is required for significant location change monitoring
